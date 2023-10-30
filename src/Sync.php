@@ -68,11 +68,7 @@ class Sync
             mkdir($this->logDir, 0755, true);
         }
 
-        $this->logger = new Logger($this->name);
-        $this->formatterForLogger = new LineFormatter("[%datetime%] %level_name%: %message% %context%\n");
-        $this->logFile = $this->logDir . '/' . date('Y_m_d_H_i_s') . '.log';
-        $handler = (new StreamHandler($this->logFile))->setFormatter($this->formatterForLogger);
-        $this->logger->pushHandler($handler);
+
 
         $this->lockFile = $this->logDir . '/' . $this->name . '_is_in_process.lock';
         $userConfig = (new Config())->get('bitrix-sync', []);
@@ -86,6 +82,18 @@ class Sync
             'sendOutputToEcho' => isset($userConfig['sendOutputToEcho']) ? (bool) $userConfig['sendOutputToEcho'] : false,
             'env' => isset($userConfig['env']) ? $userConfig['env'] : $this->env()
         ];
+
+        $logFilename = isset($userConfig['logFilename']) ? $userConfig['logFilename'] : date('Y_m_d_H_i_s');
+        $this->prepareLogger($logFilename);
+    }
+
+    protected function prepareLogger($filename = '')
+    {
+        $this->logger = new Logger($this->name);
+        $this->formatterForLogger = new LineFormatter("[%datetime%] %level_name%: %message% %context%\n");
+        $this->logFile = $this->logDir . '/' . $filename . '.log';
+        $handler = (new StreamHandler($this->logFile))->setFormatter($this->formatterForLogger);
+        $this->logger->pushHandler($handler);
     }
 
     /**
